@@ -206,20 +206,19 @@
                      [:p "Total: " (moneyformat (total (map :value components)) java.util.Locale/UK)])))))))))
 
 
-(defn views-page [dburi target]
-  (let [db (d/db (d/connect dburi))]
-    (fn this [req]
-      (let [routes (:jig.bidi/routes req)
-            views [{:a "A"} {:a "B"} {:a "C"}]]
+(defn views-page [{:keys [views]} target]
+  (fn this [req]
+    (let [routes (:jig.bidi/routes req)
+          ]
 
-        (->> views
-             (to-table
-              {:formatters
-               {               }
-               :hide-columns #{}
-               :column-order (explicit-column-order :invoice-ref :invoice-date :issue-date :entity-name :invoice :subtotal :vat :total)}))))))
+      (->> views
+           (to-table
+            {:formatters
+             {}
+             :hide-columns #{}
+             :column-order (explicit-column-order :invoice-ref :invoice-date :issue-date :entity-name :invoice :subtotal :vat :total)})))))
 
-(defn view-page [dburi]
+(defn view-page [data dburi]
   (fn [req]
     (ring-resp/response "View")
     )
@@ -299,17 +298,19 @@
   [{bootstrap-dist-dir :bootstrap-dist
     jquery-dist-dir :jquery-dist
     dburi :dburi
-    template-loader :template-loader}]
+    template-loader :template-loader
+    data :data}]
 
   {:pre [(string? bootstrap-dist-dir)
          (string? jquery-dist-dir)
-         (string? dburi)]}
+         (string? dburi)
+         (map? data)]}
 
   (let [account-page (account-page dburi)
         accounts-page (accounts-page dburi account-page)
 
-        view-page (view-page dburi)
-        views-page (views-page dburi view-page)
+        view-page (view-page data dburi)
+        views-page (views-page data view-page)
 
         invoice-pdf-page (invoice-pdf-page dburi)
         invoices-page (invoices-page dburi invoice-pdf-page)
